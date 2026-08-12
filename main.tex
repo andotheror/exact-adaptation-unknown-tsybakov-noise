@@ -1,0 +1,339 @@
+\documentclass[twoside]{article}
+
+\usepackage[preprint]{aistats2026}
+\usepackage[round,authoryear]{natbib}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+\renewcommand{\bibname}{References}
+\renewcommand{\bibsection}{\subsubsection*{\bibname}}
+\bibliographystyle{apalike}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{definition}[theorem]{Definition}
+
+\newcommand{\Hc}{\mathcal H}
+\newcommand{\D}{\mathcal D}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Pp}{\mathbb P}
+\newcommand{\one}{\mathbf 1}
+\newcommand{\Risk}{R}
+\newcommand{\Ex}{\Delta}
+\newcommand{\Profile}{\mathsf{Profile}}
+\newcommand{\Select}{\mathsf{Select}}
+\newcommand{\Tour}{\mathsf{Tournament}}
+\newcommand{\poly}{\operatorname{poly}}
+
+\begin{document}
+\runningauthor{}
+
+\twocolumn[
+\aistatstitle{Exact Adaptation to Unknown Tsybakov Noise}
+
+\aistatsauthor{Pahan Dewasurendra}
+\aistatsaddress{Johns Hopkins University}]
+
+\begin{abstract}
+The minimax excess-risk rate for a binary class of VC dimension $d$ under Tsybakov noise with exponent $\alpha\in(0,1)$ is
+\[
+ \left(\frac{d+\log(1/\delta)}{n}\right)^{1/(2-\alpha)}.
+\]
+A recent proper learner attains this rate for every VC class, but it requires both noise parameters. Whether exact adaptation is possible without either parameter was left open. We answer this question affirmatively. Our learner is proper, receives only the class, sample size, and confidence, and simultaneously attains the minimax rate for every fixed tail constant and exponent. There is no $\log\log n$ or other adaptation loss. Ordinary validation over the required $\Theta(\!\log n)$ noise profiles would incur such a loss. We avoid it through three scale-sensitive devices. First, an off-design analysis of a capped noise-profile learner makes conservative-profile failures decay geometrically with their distance from the true fixed point. Second, a stop-at-first-instability selector charges comparisons to their risk scale instead of the number of profiles. Third, a prior-weighted empirical-Bernstein tournament removes the unknown tail constant while returning one candidate. The key proof is a two-scale concentration argument: deep regional comparisons have large nominal confidence, while shallow comparisons gain variance from the stronger true noise exponent. Their balance makes all profile costs summable. This resolves exact parameter adaptation for arbitrary VC classes while preserving properness and the sharp confidence dependence.
+\end{abstract}
+
+\section{INTRODUCTION}
+
+Fast classification rates depend on how much probability lies near the Bayes decision boundary. The Tsybakov condition quantifies this through an exponent $\alpha$ that interpolates between agnostic and nearly noiseless learning \citep{mammen1999smooth,tsybakov2004optimal}. For a binary class $\Hc$ of VC dimension $d$, with the Bayes rule in $\Hc$, the minimax high-probability excess risk is
+\begin{equation}
+ r_\alpha(n,\delta)
+ =\left(\frac{d+\log(1/\delta)}{n}\right)^{1/(2-\alpha)}.
+ \label{eq:intro-rate}
+\end{equation}
+The lower bound has long been known, while empirical risk minimization pays an additional logarithm for a general VC class \citep{massart2006risk,hanneke2015minimax}.
+
+\citet{hanneke2026optimal} recently closed this twenty-year gap. Their MERIT construction isolates regions of increasing noise and intersects regional near-minimizer sets. It is proper and attains \eqref{eq:intro-rate}, but its schedules use the tail constant and $\alpha$. Their first open question asks whether an optimal learner can adapt to both parameters. We resolve that question.
+
+\begin{theorem}[Informal]
+There is one proper learner, independent of both Tsybakov parameters, whose excess risk is at most $K(C,\alpha)r_\alpha(n,\delta)$ with probability at least $1-\delta$ for every tail constant $C$, every $\alpha\in(0,1)$, and every VC class.
+\end{theorem}
+
+\begin{table*}[t]
+\caption{Closest passive-classification guarantees. ``Exact'' means no sample-dependent factor beyond the minimax rate for the stated class. Structured results use boundary or entropy assumptions beyond finite VC dimension.}
+\label{tab:comparison}
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}lXXll@{}}
+\toprule
+Work & hypothesis setting & parameters used & rate & output \\
+\midrule
+\citet{massart2006risk} & arbitrary VC & neither & logarithmic loss & proper ERM \\
+\citet{tsybakov2004optimal} & structured entropy, $\rho>0$ & neither margin nor complexity & logarithmic loss & selector \\
+\citet{lecue2007simultaneous} & structured entropy, $\rho>0$ & neither margin nor complexity & exact & aggregate \\
+\citet{hanneke2026optimal} & arbitrary VC & tail constant and exponent & exact & proper \\
+Theorem~\ref{thm:main} & arbitrary VC & neither & exact & proper \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+The result is exact in its dependence on $n,d$, and $\delta$. A direct grid over $\alpha$ does not suffice. Constant-factor discretization of the possible fixed-point risks requires $J=\Theta(\!\log n)$ profiles. Assigning confidence $\delta/J$ or validating a finite list replaces $d+\log(1/\delta)$ by $d+\log(1/\delta)+\log\log n$. This is an unbounded loss even when $d$ and $\delta$ are fixed.
+
+Our proof removes this loss by charging every random event to a risk scale. Let $s=(d+\log(1/\delta))/n$. We use the geometric grid $r_j=2^{-j}\sqrt{s}$ and define the exponent $b_j$ by $r_j=s^{1/(2-b_j)}$. If $j_\alpha$ is the last conservative profile with $b_j\leq\alpha$, then $r_{j_\alpha}\asymp r_\alpha$. A profile $\ell$ steps coarser has a true concentration exponent enlarged by
+\[
+ \left(\frac{r_j}{r_\alpha}\right)^{2-\alpha}
+ =2^{(2-\alpha)\ell}.
+\]
+This geometric gain pays for all conservative profiles without dividing confidence by $J$.
+
+There are two complications. MERIT contains a random number of fresh disagreement tests whose concentration is distribution free. We introduce deterministic, parameter-computable loop caps and allocate confidence over each cap. The extra logarithm is absorbed by the $d\log(1/B)$ term already required at disagreement scale $B$. Final regional comparisons also use internal blocks at many depths. At depth $u$, their exponent has the form
+\begin{equation}
+ \begin{aligned}
+ &cD(u+1)\max\{1,G_\ell 2^{-u}/\poly(u+1)\},\\
+ &G_\ell=2^{(2-\alpha)\ell},
+ \end{aligned}
+ \label{eq:intro-balance}
+\end{equation}
+where $D=d+\log(1/\delta)$. Above the balance depth, nominal confidence is large. Below it, the true variance is small. This makes the sum over all depths at most $K\exp[-cD(\ell+1)]$.
+
+We then select among the candidates in two steps. For each tail-constant guess, a validation rule scans record-low declared radii and stops at the first instability. False rejections before $j_\alpha$ are summable by geometric radii. After $j_\alpha$, only the first candidate with genuinely excessive risk needs to be detected. Finally, a prior-weighted empirical-Bernstein tournament processes dyadic tail-constant guesses. Every accepted replacement lowers population risk. Failure of the first valid guess to replace the champion yields a Bernstein fixed-point inequality and hence the same oracle rate.
+
+The construction is statistical rather than computational. Like the base arbitrary-VC result, it invokes constrained empirical minimization over general classes. It leaves confidence-independent, expected-risk, and efficient variants open.
+
+\section{SETTING AND RESULT}
+
+Let $(X,Y)\sim\D$ on $\mathcal X\times\{0,1\}$. Write $\eta(x)=\Pp(Y=1\mid X=x)$ and $h^*(x)=\one\{\eta(x)\geq1/2\}$. For $h\in\Hc$, let
+\[
+ \Risk(h)=\Pp(h(X)\ne Y),\qquad
+ \Ex(h)=\Risk(h)-\Risk(h^*).
+\]
+We assume throughout that $h^*\in\Hc$ and $\operatorname{VC}(\Hc)=d\geq1$.
+
+\begin{definition}[Tsybakov tail class]
+\label{def:tn}
+For $C\geq1$ and $\alpha\in(0,1)$, write $\D\in\mathrm{TN}(C,\alpha)$ if
+\begin{equation}
+ \Pp\bigl(|2\eta(X)-1|\leq t\bigr)
+ \leq C t^{\alpha/(1-\alpha)},\qquad 0<t\leq1.
+ \label{eq:tn}
+\end{equation}
+\end{definition}
+
+This direct tail parameterization makes nesting transparent. If $b\leq\alpha$, then $\mathrm{TN}(C,\alpha)\subseteq\mathrm{TN}(C,b)$. It also implies the regional Bernstein inequality
+\begin{equation}
+ \Pp(h\ne h^*,X\in A)
+ \leq(C+1)\Ex_A(h)^\alpha,
+ \label{eq:regional-bernstein}
+\end{equation}
+where $\Ex_A(h)=\E[|2\eta(X)-1|\one\{h\ne h^*,X\in A\}]$. Indeed, split at $t=\Ex_A(h)^{1-\alpha}$.
+
+\begin{theorem}[Parameter-free optimal learning]
+\label{thm:main}
+There is a proper learner $\mathsf A$, taking only $(\Hc,d,n,\delta)$, such that for every $C\geq1$ and $\alpha\in(0,1)$ there is a finite $K(C,\alpha)$ for which, for every $n\geq1$ and $\delta\in(0,1/4)$,
+\begin{equation}
+ \sup_{\D\in\mathrm{TN}(C,\alpha)}
+ \Pp_{S_n\sim\D^n}\!\left(
+ \Ex(\mathsf A(S_n,\delta))>K(C,\alpha)r_\alpha(n,\delta)
+ \right)
+ \leq\delta.
+ \label{eq:main}
+\end{equation}
+The output belongs to $\Hc$, and $\mathsf A$ uses neither $C$ nor $\alpha$.
+\end{theorem}
+
+Together with the standard lower bound \citep{massart2006risk,hanneke2015minimax}, Theorem~\ref{thm:main} gives simultaneous minimax optimality. Constants may deteriorate as $\alpha$ approaches one. This is unavoidable for our reduction and is consistent with the qualitative change at the realizable endpoint, where general proper learners cannot attain the optimal rate.
+
+\section{THE PARAMETER-FREE LEARNER}
+\label{sec:algorithm}
+
+Split the sample into three constant-size independent blocks $S,V,W$. Profiles are trained on $S$, exponent selection uses $V$, and tail-constant selection uses $W$. Put $D=d+\log(64/\delta)$, $N=\min\{|S|,|V|,|W|\}$, and $s=D/N$. The internal rate $s^{1/(2-\alpha)}$ differs from \eqref{eq:intro-rate} by only a numerical factor. If $s$ is larger than a numerical constant, return an empirical risk minimizer. We henceforth take $s$ small.
+
+\paragraph{Fixed-point profiles.}
+Let
+\[
+ r_j=2^{-j}\sqrt{s},\qquad
+ b_j=2-\frac{\log s}{\log r_j},
+ \label{eq:grid}
+\]
+and stop before $r_j<s$. Retain $b_j\in[b_-,1-b_-]$, where $b_-=1/\log\log(1/s)$. An agnostic ERM candidate of declared radius $M_0\sqrt{s}$ covers the omitted lower endpoint. For every fixed $\alpha\in(0,1)$, the grid eventually contains a last $j_\alpha$ with $b_{j_\alpha}\leq\alpha$, and
+\begin{equation}
+ r_\alpha=s^{1/(2-\alpha)}\leq r_{j_\alpha}<2r_\alpha.
+ \label{eq:oracle-grid}
+\end{equation}
+
+For tail guesses $C_k=2^k$, $0\leq k\leq\lceil\log_2N\rceil$, run a capped profile learner
+\[
+ h_{k,j}=\Profile(S,C_k,b_j,\delta).
+\]
+It is a confidence-strengthened version of MERIT. Appendix~\ref{app:profile} gives the full construction. Its schedules are those of \citet{hanneke2026optimal}, reparameterized by the tail constant in \eqref{eq:tn}, with deterministic disagreement-loop caps and explicit endpoints. Let $M(C_k,b_j)\geq1$ be its declared constant and set
+\[
+ \rho_{k,j}=M(C_k,b_j)r_j.
+\]
+If a run exhausts its deterministic sample allocation, it returns the agnostic candidate.
+
+\paragraph{Record thinning and exponent selection.}
+For fixed $k$, start with the agnostic candidate and scan profiles from coarse to fine. Keep a profile only when its declared radius is at most half the last kept radius. This yields $(h_0,\rho_0),\ldots,(h_L,\rho_L)$ with $\rho_{q+1}\leq\rho_q/2$.
+
+The selector accepts $h_0$ and scans $q=1,\ldots,L$. It accepts $h_q$ only if
+\begin{equation}
+ \widehat R_V(h_q)-\widehat R_V(h_p)
+ \leq L_0\rho_p\qquad\text{for every }p<q.
+ \label{eq:selector}
+\end{equation}
+At the first rejection it returns the preceding candidate. If no rejection occurs, it returns $h_L$. Denote the result by $g_k$.
+
+\paragraph{Tail-constant tournament.}
+Conditionally on $(S,V)$, the $g_k$ are fixed. Give index $k$ weight $\pi_k=6/[\pi^2(k+1)^2]$. For a pair $(k,l)$, define
+\begin{align}
+ x_{kl}&=\log\frac{32}{\delta\pi_k\pi_l},
+ &\widehat p_{kl}&=\widehat\Pp_W(g_k\ne g_l),\nonumber\\
+ U_{kl}&=2\widehat p_{kl}+3x_{kl}/|W|,
+ &q_{kl}&=x_{kl}/|W|,\nonumber\\
+ \operatorname{rad}_{kl}
+ &=\sqrt{2U_{kl}q_{kl}}+\frac{2q_{kl}}{3}.
+ \label{eq:pair-radius}
+\end{align}
+Start with champion $c=0$. Challenger $k$ replaces $c$ if
+\begin{equation}
+ \widehat R_W(g_k)-\widehat R_W(g_c)
+ +\operatorname{rad}_{kc}<0.
+ \label{eq:tournament}
+\end{equation}
+Return the final champion. This completes $\mathsf A$.
+
+\section{WHY ADAPTATION COSTS NO LOGARITHM}
+\label{sec:proof}
+
+We state the three ingredients. Proofs, constants, and the profile event table appear in the appendix.
+
+\begin{lemma}[Off-design profile]
+\label{lem:profile}
+Fix a true $\D\in\mathrm{TN}(C,\alpha)$ and a valid guess $C_k\geq C$. With probability at least $1-\delta/16$, every conservative profile $b_j\leq\alpha$ obeys
+\[
+ \Ex(h_{k,j})\leq\rho_{k,j}.
+\]
+Moreover, the failure contribution of the profile $\ell=j_\alpha-j$ scales above the oracle is at most
+\[
+ K(C,\alpha)\exp[-c(C,\alpha)D(\ell+1)].
+\]
+\end{lemma}
+
+The core calculations are visible from the schedules. At internal depth $u$, write $p_b=(1-b)/(2-b)$. Up to constants and powers of $u+1$,
+\begin{align}
+ n_t&=N2^{-u},
+ &a_t&=r_b^{-(1-b)}2^{-u(1+p_b)},\nonumber\\
+ \gamma_t&=r_b2^{u/(2-b)}(u+1)^{1/(2-b)},
+ &B_t&=a_t\gamma_t,
+ \label{eq:schedules}\\
+ e_t&=r_b2^{-p_bu}(u+1).\nonumber
+\end{align}
+The pruning exponent under the true $\alpha$ is exactly, up to a fixed factor,
+\begin{equation}
+ D\left(\frac{r_b}{r_\alpha}\right)^{2-\alpha}
+ 2^{-u(\alpha-b)/(2-b)}
+ (u+1)^{(2-\alpha)/(2-b)}.
+ \label{eq:pruning-exp}
+\end{equation}
+One grid step changes $b$ by $O(1/\log(1/s))$, while $u=O(\log\log(1/s))$. Thus the second factor cannot cancel the geometric fixed-point gain.
+
+For final regional comparisons, the disagreement variance is bounded both by the design scale $B_t$ and by $K\gamma_t^\alpha$ from \eqref{eq:regional-bernstein}. Their ratio produces \eqref{eq:intro-balance}. Splitting the depths at the balance point gives a geometric sum rather than a factor $\log\log n$. The terminal region has exponent $Nr_b^{2-\alpha}$ directly.
+
+The disagreement tests do not enjoy a stronger-noise exponent, so we make them simultaneous. The number of successful updates has the computable cap
+\[
+ S_t^{\max}=\left\lceil
+ K(C_k,b)a_t^{-1/(1-b)}\gamma_t^{-1}
+ \right\rceil.
+\]
+Charging each of these draws and the final unsuccessful draw adds
+\[
+ O_b(\log S_t^{\max}+\log J+\log T)
+ =O_b(\log\log(1/s))
+\]
+to its confidence logarithm. Every retained profile has $\log(1/B_t)\gtrsim\log(1/s)/\log\log(1/s)$, so the existing relative-VC sample size absorbs this addition. Lemma~\ref{lem:profile} follows by the localized VC inequality and a sum over \eqref{eq:pruning-exp} and \eqref{eq:intro-balance}.
+
+Record thinning preserves an oracle profile. Indeed, $M(C_k,b)$ is bounded on $b\in[0,\alpha]$ for fixed $(C_k,\alpha)$. The last record at or before $j_\alpha$ has radius at most $2\rho_{k,j_\alpha}\leq K(C,\alpha)r_\alpha$.
+
+\begin{lemma}[Ordered scale selection]
+\label{lem:selector}
+Suppose $\rho_{q+1}\leq\rho_q/2$ and every candidate through $q^*$ satisfies $\Ex(h_q)\leq\rho_q$, with $\rho_{q^*}\leq Kr_\alpha$. Under \eqref{eq:regional-bernstein}, the rule \eqref{eq:selector} returns $g$ satisfying $\Ex(g)\leq K'r_\alpha$ except with probability at most
+\[
+ K'\exp[-c|V|r_\alpha^{2-\alpha}].
+\]
+\end{lemma}
+
+For $p<q\leq q^*$, a false rejection needs an upward deviation of order $\rho_p$. Its probability is at most $\exp[-c|V|\rho_p^{2-\alpha}]$. At most $q^*-p$ comparisons use scale $\rho_p$, and
+\begin{equation}
+ \sum_{l\geq0}(l+1)
+ \exp[-c|V|r_\alpha^{2-\alpha}2^{(2-\alpha)l}]
+ \leq K\exp[-c'|V|r_\alpha^{2-\alpha}].
+ \label{eq:selector-sum}
+\end{equation}
+After $q^*$, all candidates are harmless until the first one whose excess exceeds a large multiple of $r_\alpha$. Acceptance of that candidate requires a downward deviation in its comparison with $h_{q^*}$. Stopping at the first rejection avoids a union over all later profiles.
+
+\begin{lemma}[Prior-weighted tournament]
+\label{lem:tournament}
+There is an event of probability at least $1-\delta/8$ with the following property. For each candidate pair, put
+\[
+ E_{kl}=(\widehat R_W-R)(g_k)
+ -(\widehat R_W-R)(g_l).
+\]
+On this event, simultaneously for all pairs,
+\begin{align}
+ |E_{kl}|&\leq\operatorname{rad}_{kl},\nonumber\\
+ \operatorname{rad}_{kl}
+ &\leq3\sqrt{\Pp(g_k\ne g_l)q_{kl}}
+ +5q_{kl}.
+ \label{eq:empbern}
+\end{align}
+Every replacement in \eqref{eq:tournament} lowers population risk. If candidate $g_k$ does not replace the current champion $g_c$, then
+\[
+ \Ex(g_c)-\Ex(g_k)\leq2\operatorname{rad}_{ck}.
+\]
+\end{lemma}
+
+The proof is ordinary Bernstein plus a binomial upper bound for the disagreement probability. The summable prior permits a union over the growing list.
+
+\paragraph{Proof of Theorem~\ref{thm:main}.}
+Fix $C$ and $\alpha$, and let $k^*=\lceil\log_2C\rceil$. For all sufficiently large $n$, $k^*$ is on the outer grid. Lemmas~\ref{lem:profile} and \ref{lem:selector} give
+\[
+ \Ex(g_{k^*})\leq K(C,\alpha)r_\alpha
+\]
+with the required probability. Immediately before challenge $k^*$, the champion index is below $k^*$. If $g_{k^*}$ replaces it, the champion has oracle risk. Otherwise Lemma~\ref{lem:tournament} and \eqref{eq:regional-bernstein} give, with $q=O_C(\log(1/\delta)/n)$,
+\begin{equation}
+ \Ex(g_c)-\Ex(g_{k^*})
+ \leq K\sqrt{(\Ex(g_c)^\alpha+\Ex(g_{k^*})^\alpha)q}+Kq.
+ \label{eq:fixedpoint}
+\end{equation}
+If $\Ex(g_c)\leq2\Ex(g_{k^*})$, the claim follows. Otherwise solving \eqref{eq:fixedpoint} yields
+\[
+ \Ex(g_c)\leq
+ K\Ex(g_{k^*})+Kq^{1/(2-\alpha)}+Kq.
+\]
+All later replacements lower risk. The profile and selector constants are fixed so their failure probabilities are at most $\delta/16$ each. Together with the $\delta/8$ tournament event, a union bound proves \eqref{eq:main} for large $n$. Enlarging $K(C,\alpha)$ covers the remaining finite range. Properness follows because every stage returns a member of $\Hc$. \hfill$\square$
+
+\section{RELATED WORK AND LIMITS}
+
+The original margin and aggregation theory established fast rates and robustness to an unknown margin for structured boundary classes \citep{mammen1999smooth,tsybakov2004optimal}. The adaptive theorem of \citet{tsybakov2004optimal} uses nested finite sieves with bracketing exponent in a fixed subinterval of $(0,1)$ and retains powers of $\log n$. The square-root penalty of \citet{tsybakov2005square} also adapts only up to logarithms.
+
+\citet{lecue2007simultaneous} obtains exact simultaneous adaptation when the bracketing exponent $\rho$ stays in a compact subset of $(0,1)$. Its aggregation remainder is lower order because $\rho>0$. An arbitrary VC class is the zero-entropy-exponent boundary, where that remainder has the same polynomial order as the target and its logarithm cannot be absorbed. Our scale-charged selector addresses precisely this boundary. Local empirical-process tools behind the profile analysis originate in ratio and local-complexity inequalities \citep{gine2006concentration,koltchinskii2006local,bartlett2006empirical}.
+
+Strong margin adaptation can be impossible for arbitrary nonnested model collections with model-specific local margins \citep{arlot2011margin}. That negative result does not conflict with Theorem~\ref{thm:main}. Here one global tail condition controls every candidate, and the profiles form a specific nested difficulty scale. Online methods can adapt to unknown Bernstein exponents, but standard learning-rate mixtures carry second-order terms such as $\log\log n$ \citep{koolen2016combining}. Our ordered rule is tailored to proper batch classification and avoids that term.
+
+This work does not make MERIT efficient. It also remains confidence dependent. A confidence-free learner would imply an optimal expected-risk result, which is another open question from \citet{hanneke2026optimal}. Adaptation at the endpoint $\alpha=1$ is excluded because arbitrary-class proper learning changes character there.
+
+\section{CONCLUSION}
+
+Exact arbitrary-VC learning under Tsybakov noise does not require the noise parameters. The apparent model-selection cost disappears when training failures, validation comparisons, and constant guesses are each charged at their natural variance scale. The resulting learner is proper and preserves the minimax dependence on sample size, dimension, and confidence.
+
+\bibliography{references}
+
+\appendix
+\input{appendix}
+
+\end{document}
