@@ -1,0 +1,482 @@
+\section{PROOFS FOR THE PROFILE LEARNER}
+\label{app:profile}
+
+This appendix gives the capped profile construction and proves Lemma~\ref{lem:profile}. Write $P$ for probability under $\D$ and $\ell_h(x,y)=\one\{h(x)\ne y\}$. Numerical constants are denoted by $c,C$, while $K(C_0,b)$ may depend on a declared tail constant and exponent. Their values can change from line to line. All logarithms below are at least one. Floors and ceilings only change numerical constants.
+
+\subsection{Concentration and tail consequences}
+
+For a measurable region $A$, define
+\[
+ \Ex_A(h)=\E\!\left[|2\eta(X)-1|
+ \one\{h(X)\ne h^*(X),X\in A\}\right].
+\]
+
+\begin{lemma}[Regional Bernstein condition]
+\label{lem:regional-appendix}
+If $\D\in\mathrm{TN}(C,\alpha)$, then for every $A$ and $h$,
+\[
+ \Pp(h\ne h^*,X\in A)\leq(C+1)\Ex_A(h)^\alpha.
+\]
+If $b\leq\alpha$, then $\D\in\mathrm{TN}(C,b)$.
+\end{lemma}
+
+\begin{proof}
+The nesting follows because $t^{\alpha/(1-\alpha)}\leq t^{b/(1-b)}$ on $[0,1]$. Put $z=\Ex_A(h)^{1-\alpha}$. Splitting the disagreement event according to whether $|2\eta-1|\leq z$ gives
+\begin{align*}
+ \Pp(h\ne h^*,X\in A)
+ &\leq Cz^{\alpha/(1-\alpha)}+\frac{\Ex_A(h)}{z}\\
+ &=(C+1)\Ex_A(h)^\alpha.
+\end{align*}
+The cases $\Ex_A(h)=0$ and $\Ex_A(h)>1$ are immediate.
+\end{proof}
+
+We use the following standard localized VC inequality. It follows by peeling a relative empirical-process inequality for the loss-difference class, whose VC dimension is at most a numerical multiple of $d$ \citep{gine2006concentration,koltchinskii2006local}.
+
+\begin{lemma}[Localized VC comparison]
+\label{lem:local-vc}
+Let $A$ be independent of an i.i.d. sample of size $m$. With probability at least $1-2e^{-x}$, simultaneously for $f,g\in\Hc$,
+\begin{align}
+ &\left|(P_m-P)
+ \bigl[(\one\{f(X)\ne Y\}-\one\{g(X)\ne Y\})\one\{X\in A\}\bigr]\right|
+ \nonumber\\
+ &\quad\leq C\left[
+ \sqrt{\frac{p_{fg,A}}{m}
+ \left(d\log Q_{fg,A}+x\right)}
+ +\frac{d\log Q_{fg,A}+x}{m}
+ \right],
+ \label{eq:local-vc}
+\end{align}
+where $p_{fg,A}=P(f\ne g,X\in A)$ and
+\[
+ Q_{fg,A}=\frac{eP(A)}{p_{fg,A}}
+ \wedge\frac{emP(A)}d.
+\]
+Logarithms are interpreted as one when their argument is smaller than $e$.
+\end{lemma}
+
+We also need a relative disagreement estimate. A standard relative VC bound applied to $\{\one\{f\ne g\}\one_A:f,g\in\Hc\}$ gives the next statement.
+
+\begin{lemma}[Multiplicative disagreement test]
+\label{lem:relative-vc}
+There is a numerical $C$ such that, if
+\[
+ m\geq\frac{C}{B}\left(d\log\frac1B+x\right),
+\]
+then, with probability at least $1-2e^{-x}$, simultaneously for $f,g\in\Hc$ and every fixed $A$,
+\begin{align*}
+ P_m(f\ne g,X\in A)\geq B&\ \Longrightarrow\
+ P(f\ne g,X\in A)\geq B/2,\\
+ P_m(f\ne g,X\in A)\leq B&\ \Longrightarrow\
+ P(f\ne g,X\in A)\leq2B.
+\end{align*}
+The result remains valid conditionally when $A$ is determined by earlier independent blocks.
+\end{lemma}
+
+The next deterministic lemma controls the mass isolated by a disagreement loop. It is the population step behind MERIT.
+
+\begin{lemma}[Noisy-region mass]
+\label{lem:region-mass}
+Suppose $V\subseteq\Hc$ and $\Ex_A(h)\leq\gamma$ for every $h\in V$. Starting from $U_0=\varnothing$, let
+\[
+ U_q=U_{q-1}\cup\{f_q\ne g_q\},
+ \qquad f_q,g_q\in V,
+\]
+and assume $P(f_q\ne g_q,X\in A\setminus U_{q-1})\geq B$. If $\D\in\mathrm{TN}(C,\alpha)$, then
+\[
+ P(U_q\cap A)\leq K(C,\alpha)(\gamma/B)^{\alpha/(1-\alpha)}.
+\]
+Consequently $q\leq K(C,\alpha)B^{-1}(\gamma/B)^{\alpha/(1-\alpha)}$.
+\end{lemma}
+
+\begin{proof}
+The pieces $Q_i=\{f_i\ne g_i\}\cap(A\setminus U_{i-1})$ are disjoint. On the disagreement of two binary classifiers, one of them disagrees with $h^*$, so
+\[
+ \E[|2\eta-1|\one_{Q_i}]
+ \leq\Ex_A(f_i)+\Ex_A(g_i)\leq2\gamma.
+\]
+Since $P(Q_i)\geq B$, the average margin on each piece is at most $2\gamma/B$. The same holds on their union $U_q\cap A$. Put $p=P(U_q\cap A)$ and $z=(p/(2C))^{(1-\alpha)/\alpha}$, truncated at one. The tail condition gives
+\[
+ \E[|2\eta-1|\mid U_q\cap A]
+ \geq z\left(1-\frac{Cz^{\alpha/(1-\alpha)}}p\right)
+ =z/2.
+\]
+Comparison with $2\gamma/B$ gives the mass bound. The pieces have mass at least $B$, which proves the count bound.
+\end{proof}
+
+\subsection{Capped profile construction}
+
+Fix a declared $(C_0,b)$ with $C_0\geq1$ and $b\in(0,1)$. Let $m$ be a fixed constant fraction of $|S|$, set
+\[
+ D=d+\log(64/\delta),\qquad s=D/m,
+ \qquad r_b=s^{1/(2-b)},
+\]
+and assume $s$ is smaller than a numerical constant. Put
+\begin{align*}
+ T&=\left\lceil\log_2\log_2(1/s)\right\rceil+1,\\
+ n_t&=m2^{t-T},\qquad 0\leq t\leq T.
+\end{align*}
+The endpoint $n_0$ is defined even though no pruning block uses it. Let $p_b=(1-b)/(2-b)$ and define, for $0\leq t\leq T$,
+\begin{equation}
+ a_t=2^{t-T}\left(\frac{n_t}{D}\right)^{p_b}.
+ \label{eq:appendix-a}
+\end{equation}
+For $1\leq t\leq T$, put $\zeta_t=(\delta/128)^{T+1-t}$ and
+\begin{align}
+ \Lambda_t={}&d\log\!\left[
+ \left(\frac{n_t}{D}\right)^{b/(2-b)}
+ a_{t-1}^{-b/(1-b)}\right]
+ +\log(2/\zeta_t),
+ \label{eq:appendix-Lambda}\\
+ \gamma_t&=A_1(C_0,b)
+ \left(\frac{\Lambda_t}{n_t}\right)^{1/(2-b)},
+ \label{eq:appendix-gamma}\\
+ B_t&=a_t\gamma_t.
+ \label{eq:appendix-B}
+\end{align}
+The log is at least one. For $0\leq t<T$, define
+\begin{equation}
+ e_t=A_2(C_0,b)2^{-p_b(T-t)}(T-t+1)r_b,
+ \label{eq:appendix-e}
+\end{equation}
+and set $e_T=A_2(C_0,b)r_b$. The constants $A_1,A_2$ are chosen large enough for the comparison events below.
+
+The profile reuses fixed portions of $S$ as follows. One portion supplies disjoint pruning blocks $S_{1,t}$ of size $n_t$. One portion, of size $m$, is the common regional block $S_3$. A third portion supplies fresh disagreement blocks. The same portions may be reused across different profiles, since the later selectors use independent $V$ and all profile probabilities are controlled jointly.
+
+At stage $t=1,\ldots,T$, let $\widehat h^*_{t-1}$ minimize empirical risk on $S_{1,t}\cap\Delta_{t-1}$ and define
+\begin{align}
+ \Hc_{t-1}=\bigl\{h\in\Hc:
+ &\widehat R_{S_{1,t}}(h,\Delta_{t-1})\nonumber\\
+ &\leq\widehat R_{S_{1,t}}
+ (\widehat h^*_{t-1},\Delta_{t-1})+\gamma_t\bigr\}.
+ \label{eq:pruned-class}
+\end{align}
+Initialize $\Delta_t=\varnothing$. Let
+\begin{equation}
+ L_t=\left\lceil
+ K_0(C_0,b)a_t^{-1/(1-b)}\gamma_t^{-1}
+ \right\rceil+1.
+ \label{eq:loop-cap}
+\end{equation}
+For each of at most $L_t$ iterations, draw a fresh block of size
+\begin{equation}
+ m_t=\left\lceil\frac{A_3}{B_t}
+ \left[d\log\frac1{B_t}
+ +\log\frac{32JT L_t}{\zeta_t}\right]\right\rceil.
+ \label{eq:disagreement-size}
+\end{equation}
+If there are $f,g\in\Hc_{t-1}$ with empirical disagreement at least $B_t$ on $\Delta_{t-1}\setminus\Delta_t$, update $\Delta_t\leftarrow\Delta_t\cup\{f\ne g\}$. Otherwise terminate the loop. If it has not terminated by iteration $L_t$, or if the cumulative fresh-sample allocation exceeds its portion of $S$, abort the profile.
+
+For $A_t=\Delta_t\setminus\Delta_{t+1}$, with $\Delta_0=\mathcal X$, let $\widehat h_t$ minimize empirical regional risk over $\Hc_t$ on $S_3\cap A_t$ and set
+\begin{align}
+ \widehat\Hc_t=\{h\in\Hc_t:
+ &\widehat R_{S_3}(h,A_t)\nonumber\\
+ &\leq\widehat R_{S_3}(\widehat h_t,A_t)+e_t\},
+ \qquad 0\leq t<T.
+ \label{eq:regional-set}
+\end{align}
+On the terminal region, minimize over $\Hc$ and define $\widehat\Hc_T$ with tolerance $A_2r_b$. If the profile has not aborted and $\cap_{t=0}^T\widehat\Hc_t$ is nonempty, output any member. Otherwise output the agnostic ERM candidate. This is $\Profile(S,C_0,b,\delta)$.
+
+The construction is a capped and confidence-strengthened form of the proper learner in \citet{hanneke2026optimal}. Equations \eqref{eq:appendix-a}--\eqref{eq:appendix-e} retain its essential schedules. We explicitly define $a_0$, charge the final unsuccessful disagreement draw, and use the direct tail constant of Definition~\ref{def:tn}.
+
+\subsection{Schedule identities and sample budget}
+
+Let $u=T-t$. Direct substitution gives the following bounds, uniformly for $0\leq u\leq T$, with constants depending only on $(C_0,b)$:
+\begin{align}
+ a_t&=r_b^{-(1-b)}2^{-u(1+p_b)},
+ \label{eq:a-identity}\\
+ \gamma_t&\asymp r_b2^{u/(2-b)}(u+1)^{1/(2-b)},
+ \label{eq:gamma-identity}\\
+ B_t&\asymp r_b^b2^{-2p_bu}(u+1)^{1/(2-b)},
+ \label{eq:B-identity}\\
+ e_t&\asymp r_b2^{-p_bu}(u+1).
+ \label{eq:e-identity}
+\end{align}
+For \eqref{eq:gamma-identity}, the logarithm in \eqref{eq:appendix-gamma} is $O_b(u+1)$ and $\log(1/\zeta_t)\asymp(u+1)\log(1/\delta)$. Increasing $A_1$ supplies matching lower bounds.
+
+The loop cap satisfies
+\begin{equation}
+ \log L_t\leq K(C_0,b)+\frac{u\log2}{1-b}+\log(u+1).
+ \label{eq:loop-log}
+\end{equation}
+Indeed, use \eqref{eq:a-identity} and \eqref{eq:gamma-identity} in \eqref{eq:loop-cap}. The powers of $r_b$ cancel.
+
+Let $L=\log(1/s)$. The exponent grid has $J=O(L)$ profiles and $T=O(\log L)$. Every retained $b\geq1/\log L$ obeys, by \eqref{eq:B-identity},
+\begin{equation}
+ \log(1/B_t)\geq c\frac{L}{\log L}
+ \label{eq:B-log-lower}
+\end{equation}
+for all sufficiently large $L$. For every fixed true $\alpha<1$, \eqref{eq:loop-log} is $O_\alpha(\log L)$ uniformly over $b\leq\alpha$. Thus the extra confidence term in \eqref{eq:disagreement-size} is absorbed by a constant multiple of $d\log(1/B_t)+\log(1/\zeta_t)$.
+
+The known-profile sample calculation then applies with a constant enlargement. For completeness, substitution of \eqref{eq:a-identity}--\eqref{eq:B-identity} into $L_tm_t$ gives a fixed power of $2^u$ times
+\[
+ m^{b/(2-b)}D^{(2-2b)/(2-b)}\poly(\log(m/D)).
+\]
+Summing $u\leq T$ contributes another fixed power of $\log(m/D)$. Since $(2-2b)/(2-b)>0$ for every fixed $b<1$, the ratio of this quantity to $m$ tends to zero. The convergence is uniform on $b\in[b_-,\alpha]$ for fixed $\alpha<1$. Therefore every conservative profile stays inside its deterministic sample allocation for all sufficiently large $m$. The cap makes the algorithm well defined for every sample.
+
+\subsection{Off-design event probabilities}
+
+Fix now a true $\D\in\mathrm{TN}(C,\alpha)$, a guess $C_0\geq C$, and a conservative $b\leq\alpha$. Let $r_\alpha=s^{1/(2-\alpha)}$ and write $r_b/r_\alpha=2^\ell$, allowing a displacement of at most one due to the grid endpoint.
+
+All disagreement implications hold simultaneously over profiles, stages, and fresh draws except with probability at most $\delta/128$. This follows from Lemma~\ref{lem:relative-vc}, \eqref{eq:disagreement-size}, and the union over the known caps. On this event, Lemma~\ref{lem:region-mass} and induction give
+\begin{align}
+ P(\Delta_t)&\leq K(C,\alpha)a_t^{-\alpha/(1-\alpha)},
+ \label{eq:true-region-mass}\\
+ P(f\ne g,X\in\Delta_{t-1}\setminus\Delta_t)
+ &\leq2B_t,\qquad f,g\in\Hc_{t-1}.
+ \label{eq:design-disagreement}
+\end{align}
+The true region bound is at least as strong as the design bound for $a_t\geq1$.
+
+The remaining events have the following scales.
+\begin{table}[h]
+\caption{Off-design comparison events. Constants and powers of $u+1$ are shown in the subsequent displays.}
+\label{tab:event-scales}
+\centering
+\small
+\begin{tabular}{llll}
+\toprule
+event & sample & threshold & variance proxy \\
+\midrule
+pruning & $n_t$ & $\gamma_t$ & $K\gamma_t^\alpha$ \\
+regional & $m$ & $e_t$ & $K\min\{B_{t+1},\gamma_{t+1}^\alpha\}$ \\
+terminal & $m$ & $r_b$ & $K P(\Delta_T)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+We make the event induction explicit. Conditional on the preceding regions, apply Lemma~\ref{lem:local-vc} to the pruning block with $g=h^*$. The empirical near-minimizer definition and the two comparison inequalities, one for $h$ and one for the empirical minimizer, imply on this event
+\begin{equation}
+ h^*\in\Hc_{t-1},\qquad
+ \sup_{h\in\Hc_{t-1}}\Ex_{\Delta_{t-1}}(h)
+ \leq K(C,\alpha)\gamma_t.
+ \label{eq:pruning-transfer}
+\end{equation}
+To verify the second statement, if the excess $z$ were larger than $K\gamma_t$, then \eqref{eq:regional-bernstein} and Lemma~\ref{lem:local-vc} would make the empirical excess at least
+\[
+ z-C\sqrt{z^\alpha\Lambda_t/n_t}-C\Lambda_t/n_t,
+\]
+where $\Lambda_t$ is the localized entropy plus confidence. The schedule gives $\Lambda_t/n_t\leq K\gamma_t^{2-b}$. Since $b\leq\alpha$ and $\gamma_t\leq1$, this is at most $K\gamma_t^{2-\alpha}$. For sufficiently large $K$, the last display exceeds $\gamma_t$, contradicting membership in \eqref{eq:pruned-class}. The same calculation with the empirical minimizer proves that $h^*$ is retained.
+
+Given \eqref{eq:pruning-transfer}, the simultaneous disagreement event and Lemma~\ref{lem:region-mass} prove \eqref{eq:true-region-mass}. Apply the same lemma with the declared pair $(C_0,b)$ to control the loop length. Every successful empirical update adds at least $B_t/2$ population mass, so the number of updates is strictly below \eqref{eq:loop-cap} when $K_0(C_0,b)$ is large enough. Thus the final unsuccessful test occurs before the cap, and its second implication proves \eqref{eq:design-disagreement}. This closes the region-construction induction.
+
+The regions depend only on pruning and disagreement blocks, so they are independent of $S_3$. Conditional on all regions, apply Lemma~\ref{lem:local-vc} to the loss differences on $A_t$. On the regional comparison event, the ERM argument just used gives
+\begin{equation}
+ h^*\in\widehat\Hc_t,\qquad
+ \sup_{h\in\widehat\Hc_t}\Ex_{A_t}(h)\leq2e_t,
+ \quad 0\leq t<T.
+ \label{eq:regional-transfer}
+\end{equation}
+The terminal event similarly gives $h^*\in\widehat\Hc_T$ and terminal excess at most $K r_b$. Hence the intersection is nonempty, and any member has excess bounded by the sum of the regional tolerances and the terminal tolerance.
+
+For pruning, Lemma~\ref{lem:local-vc} and \eqref{eq:true-region-mass} show that failure has exponent at least a fixed multiple of $n_t\gamma_t^{2-\alpha}$. The localized entropy term is no larger than $K_\alpha d(u+1)$. To see this, its potentially growing part is bounded by
+\[
+ \left(\frac{n_t}{D}\right)^{\alpha/(2-\alpha)}
+ a_{t-1}^{-\alpha/(1-\alpha)}.
+\]
+The exponent of $n_t/D$ is nonpositive when $b\leq\alpha$, since $(1-b)/(2-b)\geq(1-\alpha)/(2-\alpha)$. Only powers of $2^u$ remain.
+
+Using \eqref{eq:gamma-identity} and the fixed-point identities $mr_b^{2-b}=mr_\alpha^{2-\alpha}=D$ gives
+\begin{equation}
+ n_t\gamma_t^{2-\alpha}
+ \geq cD
+ \left(\frac{r_b}{r_\alpha}\right)^{2-\alpha}
+ 2^{-u(\alpha-b)/(2-b)}
+ (u+1)^{(2-\alpha)/(2-b)}.
+ \label{eq:exact-pruning}
+\end{equation}
+
+We record the grid calculation used to lower bound this and the regional events.
+
+\begin{lemma}[Grid-distance bounds]
+\label{lem:grid-distance}
+There are numerical $c,C>0$ such that, for every fixed $\alpha<1$ and all sufficiently small $s$, if $b\leq\alpha$ is $\ell$ risk-grid steps coarser than the last conservative point, put $G=(r_b/r_\alpha)^{2-\alpha}$. Then, uniformly for $0\leq u\leq T$,
+\begin{equation}
+ G2^{-u(\alpha-b)/(2-b)}\geq c(\ell+1).
+ \label{eq:grid-prune}
+\end{equation}
+Define
+\begin{align}
+ \Phi_u=(u+1)^{1+p_b}\max\bigl\{1,
+ &G2^{-u(1+(\alpha-b)/(2-b))}\nonumber\\
+ &\mathrel{\phantom{G}}\cdot
+ (u+1)^{(1-\alpha)/(2-b)}\bigr\}.
+ \label{eq:grid-phi}
+\end{align}
+Then
+\begin{equation}
+ \sum_{u=0}^T e^{-cD\Phi_u}
+ \leq K_\alpha e^{-c_\alpha D(\ell+1)}.
+ \label{eq:grid-regional}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Write $L=\log_2(1/s)$. On the continuous grid, $-\log_2r_b=L/(2-b)$. The derivative of $b=2-L/(-\log_2r_b)$ with respect to $-\log_2r_b$ is at most $4/L$. Hence
+\[
+ 0\leq\alpha-b\leq\frac{4(\ell+1)}L,
+ \qquad
+ \frac{r_b}{r_\alpha}\geq2^{\ell-1}.
+\]
+Also $T\leq C\log L$. The correction in \eqref{eq:grid-prune} is therefore at least
+\[
+ 2^{-C(\ell+1)\log L/L},
+\]
+which is dominated by $2^{(2-\alpha)(\ell-1)}$. This proves \eqref{eq:grid-prune}, after changing constants for bounded $L$.
+
+For \eqref{eq:grid-regional}, the same correction reduces the fixed-point gain by at most $2^{o(\ell+1)}$. It is enough to bound
+\[
+ \sum_{u=0}^T
+ \exp\{-cD(u+1)\max(1,2^{c_0\ell-u})\}.
+\]
+Split at $u=c_0\ell/2$. Below the split, the second term is exponentially large in the distance to the split. Above it, the nominal factor $u+1$ is at least a constant multiple of $\ell+1$. The two resulting geometric sums prove the claim.
+\end{proof}
+
+By \eqref{eq:exact-pruning} and Lemma~\ref{lem:grid-distance}, the pruning failures for this profile sum to at most $K_\alpha e^{-c_\alpha D(\ell+1)}$.
+
+For a regional comparison, \eqref{eq:design-disagreement} gives variance at most $KB_{t+1}$. The pruning event and Lemma~\ref{lem:regional-appendix} also give variance at most $K\gamma_{t+1}^\alpha$. From \eqref{eq:B-identity}--\eqref{eq:e-identity}, the nominal exponent $me_t^2/B_{t+1}$ is at least $cD(u+1)^{1+p_b}$. The ratio between the design and true variance proxies is, up to fixed constants,
+\begin{equation}
+ \left(\frac{r_b}{r_\alpha}\right)^{2-\alpha}
+ 2^{-u(1+(\alpha-b)/(2-b))}
+ (u+1)^{(1-\alpha)/(2-b)}.
+ \label{eq:variance-ratio}
+\end{equation}
+The entropy terms remain of order $d(u+1)$. For the design variance, this is the same cancellation used in the known-profile schedule. For the true variance, use \eqref{eq:true-region-mass} to bound the relevant ratio by
+\begin{equation}
+ \frac{a_t^{-\alpha/(1-\alpha)}}{\gamma_{t+1}^\alpha}
+ \leq K_\alpha
+ r_b^{\alpha(\alpha-b)/(1-\alpha)}2^{K_\alpha u}
+ \leq K_\alpha2^{K_\alpha u}.
+ \label{eq:true-entropy-ratio}
+\end{equation}
+Thus its logarithm is at most $K_\alpha(u+1)$. Lemma~\ref{lem:local-vc}, \eqref{eq:variance-ratio}, and \eqref{eq:grid-regional} now bound the sum of all regional failures by $K_\alpha e^{-c_\alpha D(\ell+1)}$.
+
+Finally, \eqref{eq:true-region-mass} at $T$ gives $P(\Delta_T)\leq K r_b^\alpha$. The envelope form of Lemma~\ref{lem:local-vc} implies, uniformly over terminal comparisons,
+\begin{align*}
+ &|(P_m-P)(\ell_f-\ell_g)\one_{\Delta_T})|\\
+ &\quad\leq K\left[\sqrt{\frac{P(\Delta_T)(d+x)}m}
+ +\frac{d+x}m\right].
+\end{align*}
+Here we used $p\log(eP(\Delta_T)/p)\leq P(\Delta_T)$ and the truncation in $Q_{fg,A}$ to absorb the additive entropy term. Taking $x=cD(r_b/r_\alpha)^{2-\alpha}$ makes the display at most $K r_b$ and gives failure probability
+\[
+ 2\exp\{-cD(r_b/r_\alpha)^{2-\alpha}\},
+\]
+which is stronger than required.
+
+On the complement of these failures, $h^*$ belongs to every empirical regional set. Every member of their intersection has regional excess at most $2e_t$ on stage $t$ and at most $K r_b$ on the terminal region. Since
+\[
+ \sum_{u\geq1}2^{-p_bu}(u+1)<\infty,
+\]
+the profile output has excess at most $M(C_0,b)r_b$ for an explicit finite $M$. The constants are continuous and bounded for $b$ in every compact subset of $[0,1)$. Summing the geometric profile failures over $\ell$ and adding the simultaneous disagreement event proves Lemma~\ref{lem:profile}.
+
+\section{ORDERED EXPONENT SELECTION}
+\label{app:selector}
+
+We prove Lemma~\ref{lem:selector} in a form that allows dependence among the trained candidates. Condition on the training block, so all candidates and radii are fixed before $V$.
+
+\begin{proof}[Proof of Lemma~\ref{lem:selector}]
+Let $q^*$ be the oracle record. For $p<q\leq q^*$, the population risk difference obeys
+\[
+ \Ex(h_q)-\Ex(h_p)\leq\Ex(h_q)
+ \leq\rho_q\leq\rho_p/2.
+\]
+Choose $L_0$ larger than a numerical constant. A false rejection requires an upward deviation of at least $cL_0\rho_p$. The loss difference has variance
+\begin{align*}
+ P(h_q\ne h_p)
+ &\leq P(h_q\ne h^*)+P(h_p\ne h^*) \\
+ &\leq K(C,\alpha)(\rho_q^\alpha+\rho_p^\alpha)
+ \leq K\rho_p^\alpha.
+\end{align*}
+Bernstein's inequality makes its probability at most $2\exp[-c|V|\rho_p^{2-\alpha}]$. At most $q^*-p$ comparisons use reference scale $\rho_p$. Since $\rho_p\geq2^{q^*-p}\rho_{q^*}$, their complete sum is
+\[
+ 2\sum_{l\geq0}(l+1)
+ \exp[-c|V|\rho_{q^*}^{2-\alpha}2^{(2-\alpha)l}],
+\]
+which is bounded by $K\exp[-c'|V|\rho_{q^*}^{2-\alpha}]$ whenever the base exponent is at least a numerical constant.
+
+Now consider candidates after $q^*$. If all have excess at most $K_1\rho_{q^*}$, every possible output is good. Otherwise let $q_{\mathrm{bad}}$ be the first candidate with excess larger than $K_1\rho_{q^*}$. Any earlier post-oracle candidate is good. Acceptance of $q_{\mathrm{bad}}$ requires its comparison with $h_{q^*}$ to deviate downward by a fixed multiple of $\Ex(h_{q_{\mathrm{bad}}})$. Its variance is at most
+\[
+ K(\Ex(h_{q_{\mathrm{bad}}})^\alpha+\rho_{q^*}^\alpha),
+\]
+so Bernstein bounds the acceptance probability by $2\exp[-c|V|\rho_{q^*}^{2-\alpha}]$. A rejection before this index returns a good candidate. Rejection at this index also returns a good candidate. The rule stops there, so no later union is needed.
+
+Finally $|V|\rho_{q^*}^{2-\alpha}\geq cD$ because $\rho_{q^*}\geq r_\alpha$ up to a fixed constant. Increasing the declared profile and selection constants makes the total failure at most the allocation used in the main proof.
+\end{proof}
+
+\section{THE OUTER TOURNAMENT}
+\label{app:tournament}
+
+We first prove the simultaneous empirical-Bernstein event.
+
+\begin{lemma}[Pairwise empirical Bernstein]
+\label{lem:pairwise-appendix}
+Let $f_0,\ldots,f_K$ be fixed before an i.i.d. sample of size $m$. For summable weights $\pi_k$ and
+\[
+ x_{kl}=\log\frac{32}{\delta\pi_k\pi_l},\qquad
+ q_{kl}=x_{kl}/m,
+\]
+define $U_{kl}$ and $\operatorname{rad}_{kl}$ by \eqref{eq:pair-radius}. With probability at least $1-\delta/8$, simultaneously for all pairs,
+\begin{align*}
+ |(P_m-P)(\ell_{f_k}-\ell_{f_l})|
+ &\leq\operatorname{rad}_{kl},\\
+ \operatorname{rad}_{kl}
+ &\leq3\sqrt{P(f_k\ne f_l)q_{kl}}+5q_{kl}.
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+Fix a pair and let $Z=\ell_{f_k}-\ell_{f_l}\in\{-1,0,1\}$ and $V=Z^2=\one\{f_k\ne f_l\}$. Put $\mu=EZ$, $p=EV$, and let hats denote empirical means. Bernstein's inequality gives, outside an event of probability $2e^{-x}$,
+\[
+ |\widehat\mu-\mu|
+ \leq\sqrt{2px/m}+2x/(3m).
+\]
+Applying the one-sided inequality to $V$ and using $\sqrt{2pq}\leq p/2+q$ yields
+\[
+ p\leq2\widehat p+3q=U.
+\]
+The opposite one-sided inequality gives $U\leq3p+6q$. Substituting the first bound into Bernstein proves coverage by $\sqrt{2Uq}+2q/3$. Substituting the second and using $\sqrt{a+b}\leq\sqrt a+\sqrt b$ proves the displayed upper bound with room in the constants. The pair fails with probability at most $4e^{-x_{kl}}$. Since $\sum_k\pi_k\leq1$, a union over ordered pairs is at most $\delta/8$.
+\end{proof}
+
+\begin{proof}[Proof of Lemma~\ref{lem:tournament}]
+Apply Lemma~\ref{lem:pairwise-appendix} conditionally on $(S,V)$. If $k$ replaces $c$, then
+\[
+ R(g_k)-R(g_c)
+ \leq\widehat R_W(g_k)-\widehat R_W(g_c)
+ +\operatorname{rad}_{kc}<0.
+\]
+Thus every replacement lowers population risk. If $k$ does not replace $c$, then the empirical difference is at least $-\operatorname{rad}_{kc}$. The same concentration event implies
+\[
+ R(g_c)-R(g_k)\leq2\operatorname{rad}_{kc}.
+\]
+The radius upper bound is the second conclusion of Lemma~\ref{lem:pairwise-appendix}.
+\end{proof}
+
+For clarity, we give the fixed-point algebra used after challenge $k^*$. Let $a=\Ex(g_c)$, $b=\Ex(g_{k^*})$, and $q=q_{c,k^*}$. Lemma~\ref{lem:regional-appendix} gives
+\[
+ P(g_c\ne g_{k^*})\leq(C+1)(a^\alpha+b^\alpha).
+\]
+Failure to replace gives
+\begin{equation}
+ a-b\leq K\sqrt{(a^\alpha+b^\alpha)q}+Kq.
+ \label{eq:appendix-fixedpoint}
+\end{equation}
+If $a\leq2b$, the oracle bound transfers directly. Otherwise $a-b\geq a/2$ and $b^\alpha\leq a^\alpha$. If the linear $Kq$ term is at least $a/4$, then $a\leq4Kq$. In the other case,
+\[
+ a\leq K\sqrt{a^\alpha q},
+\]
+so $a\leq Kq^{1/(2-\alpha)}$. This proves the bound following \eqref{eq:fixedpoint}.
+
+At the first valid constant guess $k^*=\lceil\log_2C\rceil$, the champion index is below $k^*$. Therefore
+\[
+ x_{c,k^*}\leq K_C+K\log(1/\delta),
+\]
+with no dependence on $n$. The outer grid eventually contains $k^*$, and every later replacement improves risk. This completes the tournament part of Theorem~\ref{thm:main}.
+
+\section{RECORD PRESERVATION AND SMALL SAMPLES}
+
+We close two endpoint details. For fixed $C_0$ and $\alpha<1$, the profile constants in the preceding construction are bounded over $b\in[0,\alpha]$. The formulas at $b=0$ have finite limits. Let $j_\alpha$ be the last unthinned conservative profile. If its declared radius is a new running minimum, the last retained halving record has radius below $2\rho_{j_\alpha}$. If it is not a new minimum, an earlier retained record is smaller. Hence the oracle record always has radius at most
+\[
+ 2\rho_{j_\alpha}
+ \leq4\sup_{0\leq b\leq\alpha}M(C_0,b)r_\alpha.
+\]
+
+The proof was written for sufficiently small $s$ and for $N$ large enough that the first valid constant guess appears and conservative profiles do not abort. For fixed $(C,\alpha)$ this excludes only finitely many effective sample sizes $N/D$. Since excess risk is at most one, increasing $K(C,\alpha)$ makes the right side of \eqref{eq:main} at least one throughout this finite range. The theorem therefore holds for every $n$.
